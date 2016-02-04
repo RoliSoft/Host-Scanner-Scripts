@@ -10,7 +10,7 @@ import (
 	"encoding/xml"
 )
 
-var entries []CpeEntry
+var entries map[string]CpeEntry
 
 type CpeEntry struct {
 	name, cpe, vendor, product, version  string
@@ -26,7 +26,13 @@ func ProcessEntry(name string, cpe string) {
 
 	vendor  := strings.Replace(elems[2], "_", " ", -1)
 	product := strings.Replace(elems[3], "_", " ", -1)
-	version := strings.Replace(elems[4], "_", " ", -1)
+	//version := strings.Replace(elems[4], "_", " ", -1)
+
+	key := vendor + " " + product
+
+	if _, err := entries[key]; err {
+		return
+	}
 
 	fullreg, _ := regexp.Compile(`\b` + strings.Replace(elems[2], "_", "[^a-z]*", -1) + "[^a-z]*" + strings.Replace(elems[3], "_", "[^a-z]*", -1) + `\b`)
 	prodreg, _ := regexp.Compile(`\b` + strings.Replace(elems[3], "_", "[^a-z]*", -1) + `\b`)
@@ -36,12 +42,13 @@ func ProcessEntry(name string, cpe string) {
 		cpe:     cpe,
 		vendor:  vendor,
 		product: product,
-		version: version,
+		//version: version,
 		fullreg: fullreg,
 		prodreg: prodreg,
 	}
 
-	entries = append(entries, entry)
+	//entries = append(entries, entry)
+	entries[key] = entry
 }
 
 func main() {
@@ -84,7 +91,7 @@ func main() {
 		return
 	}
 
-	entries = make([]CpeEntry, 0)
+	entries = make(map[string]CpeEntry)
 
 	for _, cpe := range lst.CpeItems {
 		if len(cpe.Title) == 1 {
@@ -107,10 +114,10 @@ func main() {
 
 	for _, entry := range entries {
 		if entry.prodreg.MatchString(query) {
-			println(entry.name)
+			println(entry.cpe)
 		}
 		if entry.fullreg.MatchString(query) {
-			println(entry.name)
+			println(entry.cpe)
 		}
 	}
 
