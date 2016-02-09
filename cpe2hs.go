@@ -9,14 +9,14 @@ import (
 	"encoding/binary"
 )
 
-var entries map[string]CpeEntry
+var entries map[string]Entry
 
-type CpeEntry struct {
+type Entry struct {
 	name, cpe, vendor, product, version string
 }
 
 // Reads the specified XML file and sends the entries for processing.
-func ReadCpeDict(file string) error {
+func ParseInput(file string) error {
 	var err error
 	var fp *os.File
 
@@ -29,7 +29,7 @@ func ReadCpeDict(file string) error {
 	txt, _ := ioutil.ReadAll(fp)
 
 	var lst struct {
-		CpeItems []struct {
+		Items []struct {
 			Title []struct {
 				Name string `xml:",chardata"`
 				Lang string `xml:"lang,attr"`
@@ -42,9 +42,9 @@ func ReadCpeDict(file string) error {
 		return err
 	}
 
-	entries = make(map[string]CpeEntry)
+	entries = make(map[string]Entry)
 
-	for _, cpe := range lst.CpeItems {
+	for _, cpe := range lst.Items {
 		if len(cpe.Title) == 1 {
 			ProcessEntry(cpe.Title[0].Name, cpe.Value)
 		} else {
@@ -77,7 +77,7 @@ func ProcessEntry(name string, cpe string) {
 		return
 	}
 
-	entry := CpeEntry {
+	entry := Entry{
 		name:    name,
 		cpe:     elems[0] + ":" + elems[1] + ":" + elems[2] + ":" + elems[3],
 		vendor:  vendor,
@@ -142,7 +142,7 @@ func main() {
 
 	println("Parsing CPE dictionary...")
 
-	if err = ReadCpeDict(os.Args[1]); err != nil {
+	if err = ParseInput(os.Args[1]); err != nil {
 		println(err)
 		os.Exit(-1)
 	}

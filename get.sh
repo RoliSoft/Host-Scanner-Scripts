@@ -13,6 +13,14 @@ rm -f cpe-dict.xml.gz
 wget http://static.nvd.nist.gov/feeds/xml/cpe/dictionary/official-cpe-dictionary_v2.3.xml.gz -O cpe-dict.xml.gz
 gzip -d cpe-dict.xml.gz
 
-rm -f cve-items.xml.gz
-wget https://cve.mitre.org/data/downloads/allitems.xml.gz -O cve-items.xml.gz
-gzip -d cve-items.xml.gz
+rm -f cve-items.xml
+year=$(date +'%Y')
+for i in $(seq 2002 $year); do
+	rm -f "cve-items-$i.xml"
+	wget "http://static.nvd.nist.gov/feeds/xml/cve/nvdcve-2.0-$i.xml.gz" -O "cve-items-$i.xml.gz"
+	gzip -d "cve-items-$i.xml.gz"
+	sed -i -r -e 's#<(/)?(vuln|cvss|cpe-lang):#<\1#g' "cve-items-$i.xml"
+	cat "cve-items-$i.xml" >> cve-items.xml
+	rm -f "cve-items-$i.xml"
+done
+awk -i inplace '/^\s*<\/nvd><\?xml/{next} NR>3&&/^\s*<nvd/{next} //{print $0}' cve-items.xml
