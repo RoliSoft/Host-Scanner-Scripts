@@ -72,7 +72,22 @@ func SerializeEntries(file string) error {
 	// number of entries
 	binary.Write(bw, binary.LittleEndian, uint32(len(entries.Items)))
 
+	wr := 0
 	for _, entry := range entries.Items {
+		// get the number of vulnerable software
+		vs := 0
+		for _, cpe := range entry.Software {
+			if strings.HasPrefix(cpe, "cpe:/a:") {
+				vs++
+			}
+		}
+
+		if vs == 0 {
+			continue
+		}
+
+		wr++
+
 		// number of fields in entry
 		binary.Write(bw, binary.LittleEndian, uint8(3))
 
@@ -90,13 +105,25 @@ func SerializeEntries(file string) error {
 		binary.Write(bw, binary.LittleEndian, uint8((entry.Classification.Severity - math.Floor(entry.Classification.Severity)) * 10))
 
 		// vulnerable software
-		binary.Write(bw, binary.LittleEndian, uint16(len(entry.Software)))
+		binary.Write(bw, binary.LittleEndian, uint16(vs))
 
 		for _, cpe := range entry.Software {
-			binary.Write(bw, binary.LittleEndian, uint16(len(cpe)))
-			bw.WriteString(cpe)
+			if strings.HasPrefix(cpe, "cpe:/a:") {
+				binary.Write(bw, binary.LittleEndian, uint16(len(cpe)))
+				bw.WriteString(cpe)
+			}
 		}
 	}
+
+	binary.Write(bw, binary.LittleEndian, uint32(0))
+
+	// go back to the entry count
+	bw.Flush()
+	fp.Seek(4, 0)
+
+	// write number of actual written entries
+	binary.Write(bw, binary.LittleEndian, uint32(wr))
+	bw.Flush()
 
 	return err
 }

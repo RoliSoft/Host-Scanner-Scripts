@@ -128,6 +128,10 @@ func SerializeEntries(file string) error {
 		bw.WriteString(entry.name)
 	}
 
+	binary.Write(bw, binary.LittleEndian, uint32(0))
+
+	bw.Flush()
+
 	return err
 }
 
