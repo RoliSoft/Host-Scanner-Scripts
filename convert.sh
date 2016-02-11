@@ -6,8 +6,10 @@ if [[ -z $1 || $1 == "cpealt" ]] && [[ -f cpe-aliases ]]; then
 	gzip -9 cpe-aliases.dat
 fi
 
-if [[ -f nmap-payloads ]]; then
-	:
+if [[ -z $1 || $1 == "nudp" ]] && [[ -f nmap-payloads ]]; then
+	rm -f payloads-nmap.dat payloads-nmap.dat.gz
+	go run nudp2hs.go nmap-payloads payloads-nmap.dat
+	gzip -9 payloads-nmap.dat
 fi
 
 if [[ -f nmap-service-probes ]]; then
