@@ -12,6 +12,12 @@ if [[ -z $1 || $1 == "nudp" ]] && [[ -f nmap-payloads ]]; then
 	gzip -9 payloads-nmap.dat
 fi
 
+if [[ -z $1 || $1 == "zudp" ]] && [[ -d zmap/examples/udp-probes ]]; then
+	rm -f payloads-zmap.dat payloads-zmap.dat.gz
+	go run zudp2hs.go zmap/examples/udp-probes payloads-zmap.dat
+	gzip -9 payloads-zmap.dat
+fi
+
 if [[ -f nmap-service-probes ]]; then
 	:
 fi
