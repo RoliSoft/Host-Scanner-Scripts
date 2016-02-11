@@ -32,7 +32,7 @@ func ParseInput(file string) error {
 				entries = append(entries, entry)
 				  entry = make([]string, 0)
 			}
-		} else if strings.HasPrefix(ln, "cpe:/a:") {
+		} else if strings.HasPrefix(ln, "cpe:/a:") || strings.HasPrefix(ln, "cpe:/o:") {
 			entry = append(entry, ln)
 		}
 	}
@@ -67,8 +67,8 @@ func SerializeEntries(file string) error {
 		binary.Write(bw, binary.LittleEndian, uint16(len(entry)))
 
 		for _, alias := range entry {
-			binary.Write(bw, binary.LittleEndian, uint16(len(alias)))
-			bw.WriteString(alias)
+			binary.Write(bw, binary.LittleEndian, uint16(len(alias) - 5))
+			bw.WriteString(alias[5:])
 		}
 	}
 

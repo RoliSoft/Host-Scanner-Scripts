@@ -64,7 +64,7 @@ func ParseInput(file string) error {
 func ProcessEntry(name string, cpe string) {
 	elems := strings.Split(cpe, ":")
 
-	if elems[1] != "/a" {
+	if elems[1] != "/a" && elems[1] != "/o" {
 		return
 	}
 
@@ -112,8 +112,8 @@ func SerializeEntries(file string) error {
 		binary.Write(bw, binary.LittleEndian, uint8(4))
 
 		// CPE: cpe:/a:igor_sysoev:nginx
-		binary.Write(bw, binary.LittleEndian, uint16(len(entry.cpe)))
-		bw.WriteString(entry.cpe)
+		binary.Write(bw, binary.LittleEndian, uint16(len(entry.cpe) - 5))
+		bw.WriteString(entry.cpe[5:])
 
 		// vendor: igor sysoev
 		binary.Write(bw, binary.LittleEndian, uint16(len(entry.vendor)))

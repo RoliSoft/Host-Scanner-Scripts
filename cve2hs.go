@@ -77,7 +77,7 @@ func SerializeEntries(file string) error {
 		// get the number of vulnerable software
 		vs := 0
 		for _, cpe := range entry.Software {
-			if strings.HasPrefix(cpe, "cpe:/a:") {
+			if strings.HasPrefix(cpe, "cpe:/a:") || strings.HasPrefix(cpe, "cpe:/o:") {
 				vs++
 			}
 		}
@@ -93,11 +93,11 @@ func SerializeEntries(file string) error {
 
 		// CVE: CVE-2015-4000
 		binary.Write(bw, binary.LittleEndian, uint16(len(entry.Name) - 4))
-		bw.WriteString(strings.TrimLeft(entry.Name, "CVE-"))
+		bw.WriteString(entry.Name[4:])
 /*
 		// CWE: CWE-310
 		binary.Write(bw, binary.LittleEndian, uint16(len(entry.Weakness.Name) - 4))
-		bw.WriteString(strings.TrimLeft(entry.Weakness.Name, "CWE-"))
+		bw.WriteString(entry.Weakness.Name[4:])
 */
 		// severity: 4.3
 		binary.Write(bw, binary.LittleEndian, uint8(2))
@@ -108,9 +108,9 @@ func SerializeEntries(file string) error {
 		binary.Write(bw, binary.LittleEndian, uint16(vs))
 
 		for _, cpe := range entry.Software {
-			if strings.HasPrefix(cpe, "cpe:/a:") {
-				binary.Write(bw, binary.LittleEndian, uint16(len(cpe)))
-				bw.WriteString(cpe)
+			if strings.HasPrefix(cpe, "cpe:/a:") || strings.HasPrefix(cpe, "cpe:/o:") {
+				binary.Write(bw, binary.LittleEndian, uint16(len(cpe) - 5))
+				bw.WriteString(cpe[5:])
 			}
 		}
 	}
