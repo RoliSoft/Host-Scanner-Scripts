@@ -3,11 +3,11 @@ package main
 import (
 	"os"
 	"bufio"
+	"math"
+	"strings"
 	"io/ioutil"
 	"encoding/xml"
 	"encoding/binary"
-	"strings"
-	"math"
 )
 
 var entries Entry
@@ -66,7 +66,7 @@ func SerializeEntries(file string) error {
 	bw := bufio.NewWriter(fp)
 
 	// package type: CVE database
-	binary.Write(bw, binary.LittleEndian, uint16(2))
+	binary.Write(bw, binary.LittleEndian, uint16(5))
 	// package version
 	binary.Write(bw, binary.LittleEndian, uint16(1))
 	// number of entries
