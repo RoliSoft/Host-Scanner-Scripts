@@ -1,6 +1,6 @@
 # Host Scanner Scripts
 
-This repository hosts several miscellaneous utility scripts for the Host Scanner application.
+This repository hosts several miscellaneous utility scripts for the [Host Scanner](https://github.com/RoliSoft/Host-Scanner) application.
 
 ## `get.sh` and `convert.sh`
 
