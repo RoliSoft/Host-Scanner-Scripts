@@ -11,10 +11,7 @@ import (
 var entries []Entry
 
 type Entry struct {
-	Regex string
-	CPE string
-	Product string
-	Version string
+	Regex, CPE, Product, Version string
 }
 //^match.*m\|([^\|]+)\|.*(?:(?:([pvio]\/[^\/]+\/)\s*)|(?:(cpe:\/[^\/]+\/)\s*)*)
 //^match.*m\|([^\|]+)\|[^\s]+(.+)
@@ -37,8 +34,9 @@ func ParseInput(file string) error {
 	mc := reme.FindAllStringSubmatch(dat, -1)
 
 	for _, m := range mc {
-		entry := Entry { }
-		entry.Regex = m[1]
+		entry := Entry {
+			Regex: m[1],
+		}
 
 		ms := resv.FindAllStringSubmatch(m[2], -1)
 

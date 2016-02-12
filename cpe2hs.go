@@ -12,7 +12,7 @@ import (
 var entries map[string]Entry
 
 type Entry struct {
-	name, cpe, vendor, product, version string
+	Name, CPE, Vendor, Product, Version string
 }
 
 // Reads the specified XML file and sends the entries for processing.
@@ -77,11 +77,11 @@ func ProcessEntry(name string, cpe string) {
 		return
 	}
 
-	entry := Entry{
-		name:    name,
-		cpe:     elems[0] + ":" + elems[1] + ":" + elems[2] + ":" + elems[3],
-		vendor:  vendor,
-		product: product,
+	entry := Entry {
+		Name:    name,
+		CPE:     elems[0] + ":" + elems[1] + ":" + elems[2] + ":" + elems[3],
+		Vendor:  vendor,
+		Product: product,
 	}
 
 	entries[key] = entry
@@ -112,20 +112,20 @@ func SerializeEntries(file string) error {
 		binary.Write(bw, binary.LittleEndian, uint8(4))
 
 		// CPE: cpe:/a:igor_sysoev:nginx
-		binary.Write(bw, binary.LittleEndian, uint16(len(entry.cpe) - 5))
-		bw.WriteString(entry.cpe[5:])
+		binary.Write(bw, binary.LittleEndian, uint16(len(entry.CPE) - 5))
+		bw.WriteString(entry.CPE[5:])
 
 		// vendor: igor sysoev
-		binary.Write(bw, binary.LittleEndian, uint16(len(entry.vendor)))
-		bw.WriteString(entry.vendor)
+		binary.Write(bw, binary.LittleEndian, uint16(len(entry.Vendor)))
+		bw.WriteString(entry.Vendor)
 
 		// product: nginx
-		binary.Write(bw, binary.LittleEndian, uint16(len(entry.product)))
-		bw.WriteString(entry.product)
+		binary.Write(bw, binary.LittleEndian, uint16(len(entry.Product)))
+		bw.WriteString(entry.Product)
 
 		// name: Nginx 0.1.0
-		binary.Write(bw, binary.LittleEndian, uint16(len(entry.name)))
-		bw.WriteString(entry.name)
+		binary.Write(bw, binary.LittleEndian, uint16(len(entry.Name)))
+		bw.WriteString(entry.Name)
 	}
 
 	binary.Write(bw, binary.LittleEndian, uint32(0))

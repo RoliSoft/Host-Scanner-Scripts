@@ -94,11 +94,7 @@ func SerializeEntries(file string) error {
 		// CVE: CVE-2015-4000
 		binary.Write(bw, binary.LittleEndian, uint16(len(entry.Name) - 4))
 		bw.WriteString(entry.Name[4:])
-/*
-		// CWE: CWE-310
-		binary.Write(bw, binary.LittleEndian, uint16(len(entry.Weakness.Name) - 4))
-		bw.WriteString(entry.Weakness.Name[4:])
-*/
+
 		// severity: 4.3
 		binary.Write(bw, binary.LittleEndian, uint8(2))
 		binary.Write(bw, binary.LittleEndian, uint8(math.Floor(entry.Classification.Severity)))
