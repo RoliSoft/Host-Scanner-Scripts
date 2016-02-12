@@ -18,8 +18,10 @@ if [[ -z $1 || $1 == "zudp" ]] && [[ -d zmap/examples/udp-probes ]]; then
 	gzip -9 payloads-zmap.dat
 fi
 
-if [[ -f nmap-service-probes ]]; then
-	:
+if [[ -z $1 || $1 == "ncpe" ]] && [[ -f nmap-service-probes ]]; then
+	rm -f cpe-regex-nmap.dat cpe-regex-nmap.dat.gz
+	go run ncpe2hs.go nmap-service-probes cpe-regex-nmap.dat
+	gzip -9 cpe-regex-nmap.dat
 fi
 
 if [[ -z $1 || $1 == "cpe" ]] && [[ -f cpe-dict.xml ]]; then
