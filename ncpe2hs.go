@@ -13,8 +13,7 @@ var entries []Entry
 type Entry struct {
 	Regex, CPE, Product, Version string
 }
-//^match.*m\|([^\|]+)\|.*(?:(?:([pvio]\/[^\/]+\/)\s*)|(?:(cpe:\/[^\/]+\/)\s*)*)
-//^match.*m\|([^\|]+)\|[^\s]+(.+)
+
 // Reads the specified file and sends the entries for processing.
 func ParseInput(file string) error {
 	var err error

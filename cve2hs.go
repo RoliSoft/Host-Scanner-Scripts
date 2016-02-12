@@ -96,7 +96,6 @@ func SerializeEntries(file string) error {
 		bw.WriteString(entry.Name[4:])
 
 		// severity: 4.3
-		binary.Write(bw, binary.LittleEndian, uint8(2))
 		binary.Write(bw, binary.LittleEndian, uint8(math.Floor(entry.Classification.Severity)))
 		binary.Write(bw, binary.LittleEndian, uint8((entry.Classification.Severity - math.Floor(entry.Classification.Severity)) * 10))
 
