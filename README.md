@@ -84,9 +84,9 @@ The payload list is licensed under [Apache License v2.0](https://www.apache.org/
 	┌ uint16      Package type [0x0A00]
 	├ uint16      Package version [0x0100]
 	├ uint32      Number of entries
-	└┬ uint16     Number of ports in entry
-	 ├─ uint16    Port number
-	 └ string     Payload data
+	└┬ string     Payload data
+	 ├ uint16     Number of ports in entry
+	 └─ uint16    Port number
 
 ## `nudp2hs.go`
 
@@ -99,9 +99,9 @@ The payload list is licensed under [GNU General Public License v2.0](https://www
 	┌ uint16      Package type [0x0A00]
 	├ uint16      Package version [0x0100]
 	├ uint32      Number of entries
-	└┬ uint16     Number of ports in entry
-	 ├─ uint16    Port number
-	 └ string     Payload data
+	└┬ string     Payload data
+	 ├ uint16     Number of ports in entry
+	 └─ uint16    Port number
 
 ## `ncpe2hs.go`
 

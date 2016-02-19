@@ -86,16 +86,16 @@ func SerializeEntries(file string) error {
 	binary.Write(bw, binary.LittleEndian, uint32(len(entries)))
 
 	for _, entry := range entries {
+		// payload data
+		binary.Write(bw, binary.LittleEndian, uint16(len(entry.Data)))
+		bw.WriteString(entry.Data)
+
 		// number of ports in entry
 		binary.Write(bw, binary.LittleEndian, uint16(len(entry.Ports)))
 
 		for _, port := range entry.Ports {
 			binary.Write(bw, binary.LittleEndian, uint16(port))
 		}
-
-		// payload data
-		binary.Write(bw, binary.LittleEndian, uint16(len(entry.Data)))
-		bw.WriteString(entry.Data)
 	}
 
 	binary.Write(bw, binary.LittleEndian, uint32(0))
