@@ -4,6 +4,7 @@ import (
 	"os"
 	"bufio"
 	"strings"
+	"net/url"
 	"encoding/binary"
 )
 
@@ -67,6 +68,7 @@ func serializeEntries(file string) error {
 		binary.Write(bw, binary.LittleEndian, uint16(len(entry)))
 
 		for _, alias := range entry {
+			alias, _ = url.QueryUnescape(alias)
 			binary.Write(bw, binary.LittleEndian, uint16(len(alias) - 5))
 			bw.WriteString(alias[5:])
 		}

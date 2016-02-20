@@ -4,6 +4,7 @@ import (
 	"os"
 	"bufio"
 	"strings"
+	"net/url"
 	"io/ioutil"
 	"encoding/xml"
 	"encoding/binary"
@@ -62,6 +63,7 @@ func parseInput(file string) error {
 // Processes the specified CPE entry from the XML file and places
 // it into the global variable `entries`.
 func processEntry(name string, cpe string) {
+	cpe, _ = url.QueryUnescape(cpe)
 	elems := strings.Split(cpe, ":")
 
 	if elems[1] != "/a" && elems[1] != "/o" {

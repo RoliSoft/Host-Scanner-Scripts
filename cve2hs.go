@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"math"
 	"strings"
+	"net/url"
 	"io/ioutil"
 	"encoding/xml"
 	"encoding/binary"
@@ -104,6 +105,7 @@ func serializeEntries(file string) error {
 
 		for _, cpe := range entry.Software {
 			if strings.HasPrefix(cpe, "cpe:/a:") || strings.HasPrefix(cpe, "cpe:/o:") {
+				cpe, _ = url.QueryUnescape(cpe)
 				binary.Write(bw, binary.LittleEndian, uint16(len(cpe) - 5))
 				bw.WriteString(cpe[5:])
 			}
