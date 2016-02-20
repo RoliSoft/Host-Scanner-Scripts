@@ -10,9 +10,10 @@ import (
 var entries [][]string
 
 // Reads the specified file and extracts the entries.
-func ParseInput(file string) error {
-	var err error
-	var fp *os.File
+func parseInput(file string) error {
+	var err   error
+	var fp    *os.File
+	var entry []string
 
 	if fp, err = os.Open(file); err != nil {
 		return err
@@ -21,7 +22,6 @@ func ParseInput(file string) error {
 	defer fp.Close()
 
 	entries = make([][]string, 0)
-	 entry := make([]string, 0)
 
 	scanner := bufio.NewScanner(fp)
 	for scanner.Scan() {
@@ -43,9 +43,9 @@ func ParseInput(file string) error {
 }
 
 // Writes the globally loaded entries to the specified file.
-func SerializeEntries(file string) error {
+func serializeEntries(file string) error {
 	var err error
-	var fp *os.File
+	var fp  *os.File
 
 	if fp, err = os.Create(file); err != nil {
 		return err
@@ -90,14 +90,14 @@ func main() {
 
 	println("Parsing CPE aliases list...")
 
-	if err = ParseInput(os.Args[1]); err != nil {
+	if err = parseInput(os.Args[1]); err != nil {
 		println(err)
 		os.Exit(-1)
 	}
 
 	println("Writing parsed data...")
 
-	if err = SerializeEntries(os.Args[2]); err != nil {
+	if err = serializeEntries(os.Args[2]); err != nil {
 		println(err)
 		os.Exit(-1)
 	}

@@ -10,18 +10,18 @@ import (
 	"encoding/binary"
 )
 
-var entries []Entry
+var entries []entry
 
-type Entry struct {
+type entry struct {
 	Ports []int
 	Data string
 }
 
 // Reads the specified files in the directory and sends the entries for processing.
-func ParseInput(dir string) error {
+func parseInput(dir string) error {
 	var err error
-	var fp *os.File
-	var ls []os.FileInfo
+	var fp  *os.File
+	var ls  []os.FileInfo
 
 	if ls, err = ioutil.ReadDir(dir); err != nil {
 		return err
@@ -34,7 +34,7 @@ func ParseInput(dir string) error {
 			continue
 		}
 
-		entry := Entry { }
+		entry := entry { }
 
 		if mc := repn.FindAllStringSubmatch(f.Name(), -1); len(mc) > 0 {
 			if i, e := strconv.Atoi(mc[0][1]); e == nil {
@@ -62,9 +62,9 @@ func ParseInput(dir string) error {
 }
 
 // Writes the globally loaded entries to the specified file.
-func SerializeEntries(file string) error {
+func serializeEntries(file string) error {
 	var err error
-	var fp *os.File
+	var fp  *os.File
 
 	if fp, err = os.Create(file); err != nil {
 		return err
@@ -112,14 +112,14 @@ func main() {
 
 	println("Parsing zmap payloads database...")
 
-	if err = ParseInput(os.Args[1]); err != nil {
+	if err = parseInput(os.Args[1]); err != nil {
 		println(err)
 		os.Exit(-1)
 	}
 
 	println("Writing parsed data...")
 
-	if err = SerializeEntries(os.Args[2]); err != nil {
+	if err = serializeEntries(os.Args[2]); err != nil {
 		println(err)
 		os.Exit(-1)
 	}

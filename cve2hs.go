@@ -10,9 +10,9 @@ import (
 	"encoding/binary"
 )
 
-var entries Entry
+var entries entry
 
-type Entry struct {
+type entry struct {
 	Items []struct {
 		Name 	string `xml:"cve-id"`
 		Summary string `xml:"summary"`
@@ -33,7 +33,7 @@ type Entry struct {
 }
 
 // Reads the specified XML file and sends the entries for processing.
-func ParseInput(file string) error {
+func parseInput(file string) error {
 	var err error
 	var fp *os.File
 
@@ -53,7 +53,7 @@ func ParseInput(file string) error {
 }
 
 // Writes the globally loaded entries to the specified file.
-func SerializeEntries(file string) error {
+func serializeEntries(file string) error {
 	var err error
 	var fp *os.File
 
@@ -134,14 +134,14 @@ func main() {
 
 	println("Parsing CVE database...")
 
-	if err = ParseInput(os.Args[1]); err != nil {
+	if err = parseInput(os.Args[1]); err != nil {
 		println(err)
 		os.Exit(-1)
 	}
 
 	println("Writing parsed data...")
 
-	if err = SerializeEntries(os.Args[2]); err != nil {
+	if err = serializeEntries(os.Args[2]); err != nil {
 		println(err)
 		os.Exit(-1)
 	}

@@ -9,17 +9,17 @@ import (
 	"encoding/binary"
 )
 
-var entries []Entry
+var entries []entry
 
-type Entry struct {
+type entry struct {
 	Ports []int
 	Data string
 }
 
 // Reads the specified file and sends the entries for processing.
-func ParseInput(file string) error {
+func parseInput(file string) error {
 	var err error
-	var fp *os.File
+	var fp  *os.File
 
 	if fp, err = os.Open(file); err != nil {
 		return err
@@ -39,7 +39,7 @@ func ParseInput(file string) error {
 	mc := reme.FindAllStringSubmatch(dat, -1)
 
 	for _, m := range mc {
-		entry := Entry { }
+		entry := entry { }
 
 		// extract port numbers
 
@@ -66,9 +66,9 @@ func ParseInput(file string) error {
 }
 
 // Writes the globally loaded entries to the specified file.
-func SerializeEntries(file string) error {
+func serializeEntries(file string) error {
 	var err error
-	var fp *os.File
+	var fp  *os.File
 
 	if fp, err = os.Create(file); err != nil {
 		return err
@@ -116,14 +116,14 @@ func main() {
 
 	println("Parsing nmap payloads database...")
 
-	if err = ParseInput(os.Args[1]); err != nil {
+	if err = parseInput(os.Args[1]); err != nil {
 		println(err)
 		os.Exit(-1)
 	}
 
 	println("Writing parsed data...")
 
-	if err = SerializeEntries(os.Args[2]); err != nil {
+	if err = serializeEntries(os.Args[2]); err != nil {
 		println(err)
 		os.Exit(-1)
 	}

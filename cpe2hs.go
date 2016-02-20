@@ -9,16 +9,16 @@ import (
 	"encoding/binary"
 )
 
-var entries map[string]Entry
+var entries map[string]entry
 
-type Entry struct {
+type entry struct {
 	Name, CPE, Vendor, Product, Version string
 }
 
 // Reads the specified XML file and sends the entries for processing.
-func ParseInput(file string) error {
+func parseInput(file string) error {
 	var err error
-	var fp *os.File
+	var fp  *os.File
 
 	if fp, err = os.Open(file); err != nil {
 		return err
@@ -42,15 +42,15 @@ func ParseInput(file string) error {
 		return err
 	}
 
-	entries = make(map[string]Entry)
+	entries = make(map[string]entry)
 
 	for _, cpe := range lst.Items {
 		if len(cpe.Title) == 1 {
-			ProcessEntry(cpe.Title[0].Name, cpe.Value)
+			processEntry(cpe.Title[0].Name, cpe.Value)
 		} else {
 			for _, item := range cpe.Title {
 				if item.Lang == "en-US" {
-					ProcessEntry(item.Name, cpe.Value)
+					processEntry(item.Name, cpe.Value)
 				}
 			}
 		}
@@ -61,7 +61,7 @@ func ParseInput(file string) error {
 
 // Processes the specified CPE entry from the XML file and places
 // it into the global variable `entries`.
-func ProcessEntry(name string, cpe string) {
+func processEntry(name string, cpe string) {
 	elems := strings.Split(cpe, ":")
 
 	if elems[1] != "/a" && elems[1] != "/o" {
@@ -77,7 +77,7 @@ func ProcessEntry(name string, cpe string) {
 		return
 	}
 
-	entry := Entry {
+	entry := entry {
 		Name:    name,
 		CPE:     elems[0] + ":" + elems[1] + ":" + elems[2] + ":" + elems[3],
 		Vendor:  vendor,
@@ -88,9 +88,9 @@ func ProcessEntry(name string, cpe string) {
 }
 
 // Writes the globally loaded entries to the specified file.
-func SerializeEntries(file string) error {
+func serializeEntries(file string) error {
 	var err error
-	var fp *os.File
+	var fp  *os.File
 
 	if fp, err = os.Create(file); err != nil {
 		return err
@@ -146,14 +146,14 @@ func main() {
 
 	println("Parsing CPE dictionary...")
 
-	if err = ParseInput(os.Args[1]); err != nil {
+	if err = parseInput(os.Args[1]); err != nil {
 		println(err)
 		os.Exit(-1)
 	}
 
 	println("Writing parsed data...")
 
-	if err = SerializeEntries(os.Args[2]); err != nil {
+	if err = serializeEntries(os.Args[2]); err != nil {
 		println(err)
 		os.Exit(-1)
 	}
