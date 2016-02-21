@@ -110,9 +110,6 @@ func serializeEntries(file string) error {
 	binary.Write(bw, binary.LittleEndian, uint32(len(entries)))
 
 	for _, entry := range entries {
-		// number of fields in entry
-		binary.Write(bw, binary.LittleEndian, uint8(4))
-
 		// CPE: cpe:/a:igor_sysoev:nginx
 		binary.Write(bw, binary.LittleEndian, uint16(len(entry.CPE) - 5))
 		bw.WriteString(entry.CPE[5:])

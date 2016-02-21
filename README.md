@@ -34,8 +34,7 @@ Entries other than applications (`a`) and operating systems (`o`) are filtered, 
 	┌ uint16      Package type [0x0100]
 	├ uint16      Package version [0x0100]
 	├ uint32      Number of entries
-	└┬ uint8      Number of fields in entry
-	 ├ string     CPE name
+	└┬ string     CPE name
 	 ├ string     Vendor
 	 ├ string     Product
 	 └ string     User-friendly name
