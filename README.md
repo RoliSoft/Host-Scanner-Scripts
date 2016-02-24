@@ -115,6 +115,5 @@ The service probes list is licensed under [GNU General Public License v2.0](http
 	├ uint32      Number of entries
 	└┬ string     Regular expression
 	 ├ string     CPE name
-	 ├ string     Vendor
 	 ├ string     Product
 	 └ string     Version

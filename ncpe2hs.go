@@ -28,9 +28,14 @@ func parseInput(file string) error {
 	txt, _ := ioutil.ReadAll(fp)
 	dat := string(txt)
 
-	reme, _ := regexp.Compile(`(?m:^match.*m\|([^\|]+)\|[^\s]+(.+))`) // match entries
+	reme, _ := regexp.Compile(`(?m:^match\s+[^\s]+\s+m\|([^\|]+)\|(.*)$)`) // match entries with | ; go does
+	rem2, _ := regexp.Compile(`(?m:^match\s+[^\s]+\s+m\=([^\=]+)\=(.*)$)`) // match entries with = ; not support
+	rem3, _ := regexp.Compile(`(?m:^match\s+[^\s]+\s+m\%([^\%]+)\%(.*)$)`) // match entries with % ; backreferences
 	resv, _ := regexp.Compile(`(?m:([pvihod]|cpe:)\/([^\/]+)\/)`) // match service info
+
 	mc := reme.FindAllStringSubmatch(dat, -1)
+	mc  = append(mc, rem2.FindAllStringSubmatch(dat, -1)...)
+	mc  = append(mc, rem3.FindAllStringSubmatch(dat, -1)...)
 
 	for _, m := range mc {
 		entry := entry {
