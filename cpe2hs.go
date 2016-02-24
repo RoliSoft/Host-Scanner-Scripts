@@ -10,10 +10,15 @@ import (
 	"encoding/binary"
 )
 
-var entries map[string]entry
+var entries map[string]*entry
 
 type entry struct {
-	Name, CPE, Vendor, Product, Version string
+	CPE string
+	Versions []subentry
+}
+
+type subentry struct {
+	Name, CPE string
 }
 
 // Reads the specified XML file and sends the entries for processing.
@@ -43,7 +48,7 @@ func parseInput(file string) error {
 		return err
 	}
 
-	entries = make(map[string]entry)
+	entries = make(map[string]*entry)
 
 	for _, cpe := range lst.Items {
 		if len(cpe.Title) == 1 {
@@ -70,23 +75,26 @@ func processEntry(name string, cpe string) {
 		return
 	}
 
-	vendor  := strings.Replace(elems[2], "_", " ", -1)
-	product := strings.Replace(elems[3], "_", " ", -1)
+	key := strings.Join(elems[2:3], ":")
 
-	key := vendor + " " + product
+	var ent *entry
+	var ok  bool
 
-	if _, err := entries[key]; err {
-		return
+	if ent, ok = entries[key]; !ok {
+		ent = &entry {
+			CPE:      strings.Join(elems[0:3], ":"),
+			Versions: make([]subentry, 0),
+		}
+
+		entries[key] = ent
 	}
 
-	entry := entry {
-		Name:    name,
-		CPE:     elems[0] + ":" + elems[1] + ":" + elems[2] + ":" + elems[3],
-		Vendor:  vendor,
-		Product: product,
+	ver := subentry {
+		CPE:  strings.Join(elems[4:], ":"),
+		Name: name,
 	}
 
-	entries[key] = entry
+	ent.Versions = append(ent.Versions, ver)
 }
 
 // Writes the globally loaded entries to the specified file.
@@ -110,21 +118,22 @@ func serializeEntries(file string) error {
 	binary.Write(bw, binary.LittleEndian, uint32(len(entries)))
 
 	for _, entry := range entries {
-		// CPE: cpe:/a:igor_sysoev:nginx
+		// CPE: [cpe:/]o:linux:linux_kernel
 		binary.Write(bw, binary.LittleEndian, uint16(len(entry.CPE) - 5))
 		bw.WriteString(entry.CPE[5:])
 
-		// vendor: igor sysoev
-		binary.Write(bw, binary.LittleEndian, uint16(len(entry.Vendor)))
-		bw.WriteString(entry.Vendor)
+		// number of versions
+		binary.Write(bw, binary.LittleEndian, uint32(len(entry.Versions)))
 
-		// product: nginx
-		binary.Write(bw, binary.LittleEndian, uint16(len(entry.Product)))
-		bw.WriteString(entry.Product)
+		for _, subentry := range entry.Versions {
+			// CPE: 3.10.0::~~~~arm64~
+			binary.Write(bw, binary.LittleEndian, uint16(len(subentry.CPE)))
+			bw.WriteString(subentry.CPE)
 
-		// name: Nginx 0.1.0
-		binary.Write(bw, binary.LittleEndian, uint16(len(entry.Name)))
-		bw.WriteString(entry.Name)
+			// name: Linux Kernel 3.10.0 on ARM64 architecture
+			binary.Write(bw, binary.LittleEndian, uint16(len(subentry.Name)))
+			bw.WriteString(subentry.Name)
+		}
 	}
 
 	binary.Write(bw, binary.LittleEndian, uint32(0))

@@ -35,9 +35,9 @@ Entries other than applications (`a`) and operating systems (`o`) are filtered, 
 	├ uint16      Package version [0x0100]
 	├ uint32      Number of entries
 	└┬ string     CPE name
-	 ├ string     Vendor
-	 ├ string     Product
-	 └ string     User-friendly name
+	 ├ uint32     Number of versions
+	 └┬ string    CPE version
+	  └ string    User-friendly name
 
 ## `cpealt2hs.go`
 
