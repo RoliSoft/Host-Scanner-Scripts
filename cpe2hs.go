@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"bufio"
+	"regexp"
 	"strings"
 	"net/url"
 	"io/ioutil"
@@ -14,6 +15,7 @@ var entries map[string]*entry
 
 type entry struct {
 	CPE string
+	Tokens []string
 	Versions []subentry
 }
 
@@ -75,14 +77,14 @@ func processEntry(name string, cpe string) {
 		return
 	}
 
-	key := strings.Join(elems[2:3], ":")
+	key := strings.Join(elems[1:4], ":")
 
 	var ent *entry
 	var ok  bool
 
 	if ent, ok = entries[key]; !ok {
 		ent = &entry {
-			CPE:      strings.Join(elems[0:3], ":"),
+			CPE:      strings.Join(elems[0:4], ":"),
 			Versions: make([]subentry, 0),
 		}
 
@@ -91,10 +93,43 @@ func processEntry(name string, cpe string) {
 
 	ver := subentry {
 		CPE:  strings.Join(elems[4:], ":"),
-		Name: name,
+		Name: strings.ToLower(name),
 	}
 
 	ent.Versions = append(ent.Versions, ver)
+
+	re, _ := regexp.Compile(`\b([a-z][a-z0-9]+)\b`)
+	mc := re.FindAllStringSubmatch(strings.ToLower(name), -1)
+
+	if len(mc) > 0 {
+		if len(ent.Tokens) == 0 {
+			var tokens []string
+
+			for _, token := range mc {
+				tokens = append(tokens, token[1])
+			}
+
+			ent.Tokens = tokens
+		} else {
+			var tokens []string
+
+			for _, token := range ent.Tokens {
+				found := false
+
+				for _, match := range mc {
+					if token == match[1] {
+						found = true
+					}
+				}
+
+				if found {
+					tokens = append(tokens, token)
+				}
+			}
+
+			ent.Tokens = tokens
+		}
+	}
 }
 
 // Writes the globally loaded entries to the specified file.
@@ -122,6 +157,15 @@ func serializeEntries(file string) error {
 		binary.Write(bw, binary.LittleEndian, uint16(len(entry.CPE) - 5))
 		bw.WriteString(entry.CPE[5:])
 
+		// number of tokens
+		binary.Write(bw, binary.LittleEndian, uint8(len(entry.Tokens)))
+
+		for _, token := range entry.Tokens {
+			// token: Linux, Kernel
+			binary.Write(bw, binary.LittleEndian, uint16(len(token)))
+			bw.WriteString(token)
+		}
+
 		// number of versions
 		binary.Write(bw, binary.LittleEndian, uint32(len(entry.Versions)))
 
@@ -130,9 +174,19 @@ func serializeEntries(file string) error {
 			binary.Write(bw, binary.LittleEndian, uint16(len(subentry.CPE)))
 			bw.WriteString(subentry.CPE)
 
-			// name: Linux Kernel 3.10.0 on ARM64 architecture
-			binary.Write(bw, binary.LittleEndian, uint16(len(subentry.Name)))
-			bw.WriteString(subentry.Name)
+			// remove tokens from name
+			name := subentry.Name
+
+			for _, token := range entry.Tokens {
+				name = strings.Replace(name, token, "", -1)
+				//name = regexp.MustCompile("(?i)" + token).ReplaceAllLiteralString(name, "")
+			}
+
+			name = strings.TrimSpace(name)
+
+			// name: [Linux Kernel] 3.10.0 on ARM64 architecture
+			binary.Write(bw, binary.LittleEndian, uint16(len(name)))
+			bw.WriteString(name)
 		}
 	}
 

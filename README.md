@@ -35,6 +35,8 @@ Entries other than applications (`a`) and operating systems (`o`) are filtered, 
 	├ uint16      Package version [0x0100]
 	├ uint32      Number of entries
 	└┬ string     CPE name
+	 ├ uint8      Number of common tokens
+	 ├─ string    Token
 	 ├ uint32     Number of versions
 	 └┬ string    CPE version
 	  └ string    User-friendly name
