@@ -16,7 +16,7 @@ var entries map[string]*entry
 type entry struct {
 	CPE string
 	Tokens []string
-	Versions []subentry
+	Versions []*subentry
 }
 
 type subentry struct {
@@ -64,6 +64,41 @@ func parseInput(file string) error {
 		}
 	}
 
+	// post-process entries array
+
+	for _, entry := range entries {
+		// add additional tokens from CPE
+
+		re, _ := regexp.Compile(`([a-z][a-z0-9]+)`)
+		mc := re.FindAllStringSubmatch(entry.CPE[7:], -1)
+
+		if len(mc) > 0 {
+			for _, match := range mc {
+				found := false
+
+				for _, token := range entry.Tokens {
+					if token == match[1] {
+						found = true
+					}
+				}
+
+				if !found {
+					entry.Tokens = append(entry.Tokens, match[1])
+				}
+			}
+		}
+
+		// remove tokens from the name of each version
+
+		for _, subentry := range entry.Versions {
+			for _, token := range entry.Tokens {
+				subentry.Name = regexp.MustCompile(`(?:^|[^a-z])` + token + `(?:[^a-z]|$)`).ReplaceAllLiteralString(subentry.Name, " ")
+			}
+
+			subentry.Name = strings.TrimSpace(regexp.MustCompile(`\s+`).ReplaceAllLiteralString(subentry.Name, " "))
+		}
+	}
+
 	return err
 }
 
@@ -85,20 +120,20 @@ func processEntry(name string, cpe string) {
 	if ent, ok = entries[key]; !ok {
 		ent = &entry {
 			CPE:      strings.Join(elems[0:4], ":"),
-			Versions: make([]subentry, 0),
+			Versions: make([]*subentry, 0),
 		}
 
 		entries[key] = ent
 	}
 
-	ver := subentry {
+	ver := &subentry {
 		CPE:  strings.Join(elems[4:], ":"),
 		Name: strings.ToLower(name),
 	}
 
 	ent.Versions = append(ent.Versions, ver)
 
-	re, _ := regexp.Compile(`\b([a-z][a-z0-9]+)\b`)
+	re, _ := regexp.Compile(`([a-z][a-z0-9]+)`)
 	mc := re.FindAllStringSubmatch(strings.ToLower(name), -1)
 
 	if len(mc) > 0 {
@@ -174,19 +209,9 @@ func serializeEntries(file string) error {
 			binary.Write(bw, binary.LittleEndian, uint16(len(subentry.CPE)))
 			bw.WriteString(subentry.CPE)
 
-			// remove tokens from name
-			name := subentry.Name
-
-			for _, token := range entry.Tokens {
-				name = strings.Replace(name, token, "", -1)
-				//name = regexp.MustCompile("(?i)" + token).ReplaceAllLiteralString(name, "")
-			}
-
-			name = strings.TrimSpace(name)
-
 			// name: [Linux Kernel] 3.10.0 on ARM64 architecture
-			binary.Write(bw, binary.LittleEndian, uint16(len(name)))
-			bw.WriteString(name)
+			binary.Write(bw, binary.LittleEndian, uint16(len(subentry.Name)))
+			bw.WriteString(subentry.Name)
 		}
 	}
 
