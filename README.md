@@ -39,7 +39,9 @@ Entries other than applications (`a`) and operating systems (`o`) are filtered, 
 	 ├─ string    Token
 	 ├ uint32     Number of versions
 	 └┬ string    CPE version
-	  └ string    User-friendly name
+	  ├ string    Version token
+	  ├ uint8     Number of version-specific tokens
+	  └─ string   Token
 
 ## `cpealt2hs.go`
 

@@ -20,7 +20,8 @@ type entry struct {
 }
 
 type subentry struct {
-	Name, CPE string
+	CPE, Version, Name string
+	Tokens []string
 }
 
 // Reads the specified XML file and sends the entries for processing.
@@ -69,8 +70,8 @@ func parseInput(file string) error {
 	for _, entry := range entries {
 		// add additional tokens from CPE
 
-		re, _ := regexp.Compile(`([a-z][a-z0-9]+)`)
-		mc := re.FindAllStringSubmatch(entry.CPE[7:], -1)
+		retm, _ := regexp.Compile(`([a-z][a-z0-9]+)`)
+		mc := retm.FindAllStringSubmatch(entry.CPE[7:], -1)
 
 		if len(mc) > 0 {
 			for _, match := range mc {
@@ -95,7 +96,14 @@ func parseInput(file string) error {
 				subentry.Name = regexp.MustCompile(`(?:^|[^a-z])` + token + `(?:[^a-z]|$)`).ReplaceAllLiteralString(subentry.Name, " ")
 			}
 
+			subentry.Name = regexp.MustCompile(strings.Replace(subentry.Version, ".", "\\.", -1)).ReplaceAllLiteralString(subentry.Name, " ")
 			subentry.Name = strings.TrimSpace(regexp.MustCompile(`\s+`).ReplaceAllLiteralString(subentry.Name, " "))
+
+			subentry.Tokens = strings.Split(subentry.Name, " ")
+
+			if len(subentry.Tokens) == 1 && len(subentry.Tokens[0]) == 0 {
+				subentry.Tokens = nil
+			}
 		}
 	}
 
@@ -114,6 +122,13 @@ func processEntry(name string, cpe string) {
 
 	key := strings.Join(elems[1:4], ":")
 
+	revm, _ := regexp.Compile(`\d+\.(?:\d+\.)*\d+`)
+	vmc := revm.FindAllStringSubmatch(strings.Join(elems[4:], ":"), -1)
+
+	if len(vmc) == 0 || len(vmc[0]) == 0 {
+		return
+	}
+
 	var ent *entry
 	var ok  bool
 
@@ -127,14 +142,15 @@ func processEntry(name string, cpe string) {
 	}
 
 	ver := &subentry {
-		CPE:  strings.Join(elems[4:], ":"),
-		Name: strings.ToLower(name),
+		CPE:     strings.Join(elems[4:], ":"),
+		Version: vmc[0][0],
+		Name:    strings.ToLower(name),
 	}
 
 	ent.Versions = append(ent.Versions, ver)
 
-	re, _ := regexp.Compile(`([a-z][a-z0-9]+)`)
-	mc := re.FindAllStringSubmatch(strings.ToLower(name), -1)
+	remt, _ := regexp.Compile(`([a-z][a-z0-9]+)`)
+	mc := remt.FindAllStringSubmatch(strings.ToLower(name), -1)
 
 	if len(mc) > 0 {
 		if len(ent.Tokens) == 0 {
@@ -209,9 +225,18 @@ func serializeEntries(file string) error {
 			binary.Write(bw, binary.LittleEndian, uint16(len(subentry.CPE)))
 			bw.WriteString(subentry.CPE)
 
-			// name: [Linux Kernel] 3.10.0 on ARM64 architecture
-			binary.Write(bw, binary.LittleEndian, uint16(len(subentry.Name)))
-			bw.WriteString(subentry.Name)
+			// version: 3.10.0
+			binary.Write(bw, binary.LittleEndian, uint16(len(subentry.Version)))
+			bw.WriteString(subentry.Version)
+
+			// number of tokens
+			binary.Write(bw, binary.LittleEndian, uint8(len(subentry.Tokens)))
+
+			for _, token := range subentry.Tokens {
+				// token: on, ARM64, architecture
+				binary.Write(bw, binary.LittleEndian, uint16(len(token)))
+				bw.WriteString(token)
+			}
 		}
 	}
 
