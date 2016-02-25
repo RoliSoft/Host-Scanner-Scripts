@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"io/ioutil"
 	"encoding/xml"
+	"encoding/json"
 	"encoding/binary"
 )
 
@@ -20,7 +21,8 @@ type entry struct {
 }
 
 type subentry struct {
-	CPE, Version, Name string
+	CPE, Version string
+	Name string `json:"-"`
 	Tokens []string
 }
 
@@ -184,7 +186,7 @@ func processEntry(name string, cpe string) {
 }
 
 // Writes the globally loaded entries to the specified file.
-func serializeEntries(file string) error {
+func serializeEntries(file string, debug bool) error {
 	var err error
 	var fp  *os.File
 
@@ -195,6 +197,16 @@ func serializeEntries(file string) error {
 	defer fp.Close()
 
 	bw := bufio.NewWriter(fp)
+
+	if debug {
+		var bs []byte
+		bs, err = json.MarshalIndent(entries, "", "\t")
+
+		bw.Write(bs)
+		bw.Flush()
+
+		return err
+	}
 
 	// package type: CPE dictionary
 	binary.Write(bw, binary.LittleEndian, uint16(1))
@@ -250,11 +262,17 @@ func serializeEntries(file string) error {
 // Entry point of the application.
 func main() {
 	if len(os.Args) < 3 {
-		println("usage: cpe2hs input output")
+		println("usage: cpe2hs [--json] input output")
 		os.Exit(-1)
 	}
 
 	var err error
+	var dbg bool
+
+	if os.Args[1] == "--json" {
+		dbg = true
+		os.Args = os.Args[1:]
+	}
 
 	println("Parsing CPE dictionary...")
 
@@ -265,7 +283,7 @@ func main() {
 
 	println("Writing parsed data...")
 
-	if err = serializeEntries(os.Args[2]); err != nil {
+	if err = serializeEntries(os.Args[2], dbg); err != nil {
 		println(err)
 		os.Exit(-1)
 	}

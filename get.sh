@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [[ $1 == "-h" || $1 == "--help" ]]; then
+	echo usage: get [script]; exit 0
+fi
+
 if [[ -z $1 || $1 == "cpealt" ]]; then
 	echo -e "\e[32mDownloading CPE aliases...\e[39m"
 
@@ -46,7 +50,7 @@ fi
 if [[ -z $1 || $1 == "cve" ]]; then
 	rm -f cve-items.xml
 	year=$(date +'%Y')
-	for i in $(seq 2002 $year); do
+	for i in $(seq 2002 ${year}); do
 		echo -e "\e[32mDownloading CVE database for $i...\e[39m"
 		rm -f "cve-items-$i.xml"
 		wget "http://static.nvd.nist.gov/feeds/xml/cve/nvdcve-2.0-$i.xml.gz" -O "cve-items-$i.xml.gz"

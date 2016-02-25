@@ -6,6 +6,10 @@ This repository hosts several miscellaneous utility scripts for the [Host Scanne
 
 The first script downloads all the data files that are required for the various scripts to run. The second one runs the conversions.
 
+When invoking the go scripts directly or via the converter script, the `--json` argument overrides the default behaviour of the `serializeEntries()` function within the scripts to dump the global `entries` list as an indented JSON to the specified output instead of the proprietary binary format. This is useful for either debugging purposes or easy reuse of the data within 3rd-party applications.
+
+Similarly, the `--nogz` argument instructs the converter script not to gzip the output file after conversion.
+
 ## Format
 
 The file format which the source data is converted to is a generic binary format, having the following header:

@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"regexp"
 	"io/ioutil"
+	"encoding/json"
 	"encoding/binary"
 )
 
@@ -66,7 +67,7 @@ func parseInput(file string) error {
 }
 
 // Writes the globally loaded entries to the specified file.
-func serializeEntries(file string) error {
+func serializeEntries(file string, debug bool) error {
 	var err error
 	var fp  *os.File
 
@@ -77,6 +78,16 @@ func serializeEntries(file string) error {
 	defer fp.Close()
 
 	bw := bufio.NewWriter(fp)
+
+	if debug {
+		var bs []byte
+		bs, err = json.MarshalIndent(entries, "", "\t")
+
+		bw.Write(bs)
+		bw.Flush()
+
+		return err
+	}
 
 	// package type: service regexes
 	binary.Write(bw, binary.LittleEndian, uint16(15))
@@ -113,11 +124,17 @@ func serializeEntries(file string) error {
 // Entry point of the application.
 func main() {
 	if len(os.Args) < 3 {
-		println("usage: ncpe2hs input output")
+		println("usage: ncpe2hs [--json] input output")
 		os.Exit(-1)
 	}
 
 	var err error
+	var dbg bool
+
+	if os.Args[1] == "--json" {
+		dbg = true
+		os.Args = os.Args[1:]
+	}
 
 	println("Parsing nmap service probes database...")
 
@@ -128,7 +145,7 @@ func main() {
 
 	println("Writing parsed data...")
 
-	if err = serializeEntries(os.Args[2]); err != nil {
+	if err = serializeEntries(os.Args[2], dbg); err != nil {
 		println(err)
 		os.Exit(-1)
 	}
