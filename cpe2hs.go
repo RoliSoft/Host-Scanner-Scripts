@@ -107,6 +107,24 @@ func parseInput(file string) error {
 				subentry.Tokens = nil
 			}
 		}
+
+		// replace tokens with the ones extracted from the CPE only
+
+		entry.Tokens = make([]string, 0)
+
+		for _, match := range mc {
+			found := false
+
+			for _, token := range entry.Tokens {
+				if token == match[1] {
+					found = true
+				}
+			}
+
+			if !found {
+				entry.Tokens = append(entry.Tokens, match[1])
+			}
+		}
 	}
 
 	return err
