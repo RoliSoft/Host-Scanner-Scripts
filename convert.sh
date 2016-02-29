@@ -38,6 +38,12 @@ if [[ -z ${scr} || ${scr} == "ncpe" ]] && [[ -f nmap-service-probes ]]; then
 	[[ ${gz} -eq 1 ]] && gzip -9 cpe-regex-nmap.dat
 fi
 
+if [[ -z ${scr} || ${scr} == "bsvr" ]] && [[ -f burp-match-rules ]]; then
+	rm -f cpe-regex-burp.dat cpe-regex-burp.dat.gz
+	go run bsvr2hs.go $@ burp-match-rules cpe-regex-burp.dat
+	[[ ${gz} -eq 1 ]] && gzip -9 cpe-regex-burp.dat
+fi
+
 if [[ -z ${scr} || ${scr} == "cpe" ]] && [[ -f cpe-dict.xml ]]; then
 	rm -f cpe-list.dat cpe-list.dat.gz
 	go run cpe2hs.go $@ cpe-dict.xml cpe-list.dat

@@ -25,6 +25,13 @@ if [[ -z $1 || $1 == "ncpe" ]]; then
 	wget https://svn.nmap.org/nmap/nmap-service-probes -O nmap-service-probes
 fi
 
+if [[ -z $1 || $1 == "bsvr" ]]; then
+	echo -e "\e[32mDownloading Burp match rules...\e[39m"
+
+	rm -f burp-match-rules
+	wget https://raw.githubusercontent.com/augustd/burp-suite-software-version-checks/master/src/burp/match-rules.tab -O burp-match-rules
+fi
+
 if [[ -z $1 || $1 == "cpe" ]]; then
 	echo -e "\e[32mDownloading CPE dictionary...\e[39m"
 

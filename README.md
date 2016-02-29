@@ -6,9 +6,9 @@ This repository hosts several miscellaneous utility scripts for the [Host Scanne
 
 The first script downloads all the data files that are required for the various scripts to run. The second one runs the conversions.
 
-When invoking the go scripts directly or via the converter script, the `--json` argument overrides the default behaviour of the `serializeEntries()` function within the scripts to dump the global `entries` list as an indented JSON to the specified output instead of the proprietary binary format. This is useful for either debugging purposes or easy reuse of the data within 3rd-party applications.
+When invoking the go scripts directly or via the converter script, the `--json` argument overrides the default behaviour of the `serializeEntries()` function within the scripts to dump the global `entries` list as an indented JSON to the specified output instead of the proprietary binary format. Similarly, the `--nogz` argument instructs the converter script not to gzip the output file after conversion.
 
-Similarly, the `--nogz` argument instructs the converter script not to gzip the output file after conversion.
+This is useful for either debugging purposes or easy reuse of the data within 3rd-party applications. When reusing, please beware of the licenses under which these datasets are being distributed, as some do not allow commercial usage or restrict the licensing of the combined work.
 
 ## Format
 
@@ -115,6 +115,22 @@ The payload list is licensed under [GNU General Public License v2.0](https://www
 Converts Nmap's [service probes](https://nmap.org/book/vscan-fileformat.html) to the binary format in use by the application.
 
 The service probes list is licensed under [GNU General Public License v2.0](https://www.gnu.org/licenses/gpl-2.0.html) by Insecure.Com LLC.
+
+### Format
+
+	┌ uint16      Package type [0x0F00]
+	├ uint16      Package version [0x0100]
+	├ uint32      Number of entries
+	└┬ string     Regular expression
+	 ├ string     CPE name
+	 ├ string     Product
+	 └ string     Version
+
+## `bsvr2hs.go`
+
+Converts Burp Suite Software Version Check's [match rules](https://github.com/augustd/burp-suite-software-version-checks/blob/master/src/burp/match-rules.tab) to the binary format in use by the application.
+
+The match rules list is licensed under [Creative Commons Attribution-NonCommercial-ShareAlike v3.0 Unported License](https://creativecommons.org/licenses/by-nc-sa/3.0/) by August Detlefsen.
 
 ### Format
 
