@@ -51,7 +51,7 @@ if [[ -z ${scr} || ${scr} == "cpe" ]] && [[ -f cpe-dict.xml ]]; then
 fi
 
 if [[ -z ${scr} || ${scr} == "cve" ]] && [[ -f cve-items.xml ]]; then
-	rm -f cve-list.dat cve-list.dat.gz
-	go run cve2hs.go $@ cve-items.xml cve-list.dat
-	[[ ${gz} -eq 1 ]] && gzip -9 cve-list.dat
+	rm -f cve-list.db3 cve-list.db3.bz2
+	go run cve2hs.go $@ cve-items.xml cve-list.db3
+	[[ ${gz} -eq 1 ]] && bzip2 -9 cve-list.db3
 fi

@@ -1,7 +1,9 @@
 /*.gz
+/*.bz2
 /*.xml
 /*.lst
 /*.dat
+/*.db3
 /zmap
 /cpe-aliases
 /nmap-payloads

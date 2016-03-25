@@ -2,14 +2,16 @@ package main
 
 import (
 	"os"
+	"fmt"
 	"bufio"
-	"math"
 	"strings"
 	"net/url"
 	"io/ioutil"
+	"database/sql"
 	"encoding/xml"
 	"encoding/json"
-	"encoding/binary"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var entries entry
@@ -57,17 +59,18 @@ func parseInput(file string) error {
 // Writes the globally loaded entries to the specified file.
 func serializeEntries(file string, debug bool) error {
 	var err error
-	var fp *os.File
-
-	if fp, err = os.Create(file); err != nil {
-		return err
-	}
-
-	defer fp.Close()
-
-	bw := bufio.NewWriter(fp)
 
 	if debug {
+		var fp *os.File
+
+		if fp, err = os.Create(file); err != nil {
+			return err
+		}
+
+		defer fp.Close()
+
+		bw := bufio.NewWriter(fp)
+
 		var bs []byte
 		bs, err = json.MarshalIndent(entries, "", "\t")
 
@@ -77,20 +80,38 @@ func serializeEntries(file string, debug bool) error {
 		return err
 	}
 
-	// package type: CVE database
-	binary.Write(bw, binary.LittleEndian, uint16(5))
-	// package version
-	binary.Write(bw, binary.LittleEndian, uint16(1))
-	// number of entries
-	binary.Write(bw, binary.LittleEndian, uint32(len(entries.Items)))
+	var db *sql.DB
+	var tx *sql.Tx
+	var stm1, stm2 *sql.Stmt
 
-	wr := 0
-	for _, entry := range entries.Items {
-		// get the number of vulnerable software
+	if db, err = sql.Open("sqlite3", file); err != nil {
+		return err
+	}
+
+	defer db.Close()
+
+	db.Exec(`create table vulns (id int not null, cve text, severity real, access char(1), primary key(id))`)
+	db.Exec(`create table affected (vuln_id int not null, cpe text, foreign key(vuln_id) references vulns(id))`)
+	db.Exec(`create index cpe_vuln_idx on affected (cpe collate nocase)`)
+
+	if tx, err = db.Begin(); err != nil {
+		return err
+	}
+
+	defer tx.Commit()
+
+	stm1, _ = tx.Prepare("insert into vulns values (?, ?, ?, ?)")
+	stm2, _ = tx.Prepare("insert into affected values (?, ?)")
+
+	defer stm1.Close()
+	defer stm2.Close()
+
+	for id, entry := range entries.Items {
 		vs := 0
 		for _, cpe := range entry.Software {
 			if strings.HasPrefix(cpe, "cpe:/a:") || strings.HasPrefix(cpe, "cpe:/o:") {
 				vs++
+				break
 			}
 		}
 
@@ -98,40 +119,24 @@ func serializeEntries(file string, debug bool) error {
 			continue
 		}
 
-		wr++
-
-		// number of fields in entry
-		binary.Write(bw, binary.LittleEndian, uint8(3))
-
-		// CVE: CVE-2015-4000
-		binary.Write(bw, binary.LittleEndian, uint16(len(entry.Name) - 4))
-		bw.WriteString(entry.Name[4:])
-
-		// severity: 4.3
-		binary.Write(bw, binary.LittleEndian, uint8(math.Floor(entry.Classification.Severity)))
-		binary.Write(bw, binary.LittleEndian, uint8((entry.Classification.Severity - math.Floor(entry.Classification.Severity)) * 10))
-
-		// vulnerable software
-		binary.Write(bw, binary.LittleEndian, uint16(vs))
+		if _, err = stm1.Exec(id, entry.Name, entry.Classification.Severity, strings.ToLower(entry.Classification.AccessVector)[:1]); err != nil {
+			fmt.Printf("%#v\n", err);
+			continue
+		}
 
 		for _, cpe := range entry.Software {
 			if strings.HasPrefix(cpe, "cpe:/a:") || strings.HasPrefix(cpe, "cpe:/o:") {
 				cpe, _ = url.QueryUnescape(cpe)
-				binary.Write(bw, binary.LittleEndian, uint16(len(cpe) - 5))
-				bw.WriteString(cpe[5:])
+
+				if _, err = stm2.Exec(id, cpe[5:]); err != nil {
+					fmt.Printf("%#v\n", err);
+					continue
+				}
 			}
 		}
 	}
 
-	binary.Write(bw, binary.LittleEndian, uint32(0))
-
-	// go back to the entry count
-	bw.Flush()
-	fp.Seek(4, 0)
-
-	// write number of actual written entries
-	binary.Write(bw, binary.LittleEndian, uint32(wr))
-	bw.Flush()
+	tx.Exec(`vacuum;`)
 
 	return err
 }

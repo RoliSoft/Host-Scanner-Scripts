@@ -65,20 +65,26 @@ The alias database is licensed under [MIT License (Expat)](https://www.debian.or
 
 ## `cve2hs.go`
 
-Converts NIST's [National Vulnerability Database (NVD)](https://nvd.nist.gov/download.cfm) to the binary format in use by the application.
+Converts NIST's [National Vulnerability Database (NVD)](https://nvd.nist.gov/download.cfm) to an SQLite3 database to be queried by the application.
 
 Entries not linked via CPE to at least one application or operating system are filtered, since they are of no use during automatic vulnerability discovery.
 
-### Format
+In order to run this script, you will need to first install the _go-sqlite3_ package with:
 
-	┌ uint16      Package type [0x0500]
-	├ uint16      Package version [0x0100]
-	├ uint32      Number of entries
-	└┬ uint8      Number of fields in entry
-	 ├ string     CVE identifier
-	 ├ uint16     Severity
-	 ├ uint16     Number of vulnerable software
-	 └─ string    CPE name
+	go get github.com/mattn/go-sqlite3
+
+Since this dependency is a _cgo_ package, you will need _gcc_ in your `%PATH%`. As Cygwin is not supported by Go, you specifically need the MinGW version on Windows.
+
+### Tables
+
+	vulns (id int, cve text, severity float, access char(1))
+	affected (vuln_id int, cpe text)
+
+The `access` field represents the access vector, and can be:
+
+- `l` for local: physical access or local presence is required to exploit.
+- `a` for adjacent: attacker has to reside on the same local network.
+- `n` for network: vulnerability is remotely exploitable over the Internet.
 
 ## `zudp2hs.go`
 
