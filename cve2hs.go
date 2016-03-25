@@ -119,7 +119,7 @@ func serializeEntries(file string, debug bool) error {
 			continue
 		}
 
-		if _, err = stm1.Exec(id, entry.Name, entry.Classification.Severity, strings.ToLower(entry.Classification.AccessVector)[:1]); err != nil {
+		if _, err = stm1.Exec(id, entry.Name[4:], entry.Classification.Severity, strings.ToLower(entry.Classification.AccessVector)[:1]); err != nil {
 			fmt.Printf("%#v\n", err);
 			continue
 		}
