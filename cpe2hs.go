@@ -242,6 +242,8 @@ func serializeEntries(file string, debug bool) error {
 		binary.Write(bw, binary.LittleEndian, uint8(len(entry.Tokens)))
 
 		for _, token := range entry.Tokens {
+			token = regexp.QuoteMeta(token)
+
 			// token: Linux, Kernel
 			binary.Write(bw, binary.LittleEndian, uint16(len(token)))
 			bw.WriteString(token)
@@ -263,6 +265,8 @@ func serializeEntries(file string, debug bool) error {
 			binary.Write(bw, binary.LittleEndian, uint8(len(subentry.Tokens)))
 
 			for _, token := range subentry.Tokens {
+				token = regexp.QuoteMeta(token)
+
 				// token: on, ARM64, architecture
 				binary.Write(bw, binary.LittleEndian, uint16(len(token)))
 				bw.WriteString(token)
