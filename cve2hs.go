@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"fmt"
+	"time"
 	"bufio"
 	"strings"
 	"net/url"
@@ -19,6 +20,7 @@ var entries entry
 type entry struct {
 	Items []struct {
 		Name 	string `xml:"cve-id"`
+		Date 	string `xml:"published-datetime"`
 		Summary string `xml:"summary"`
 		Weakness struct {
 			Name string `xml:"id,attr"`
@@ -90,7 +92,7 @@ func serializeEntries(file string, debug bool) error {
 
 	defer db.Close()
 
-	db.Exec(`create table vulns (id int not null, cve text, descr text, severity real, access char(1), primary key(id))`)
+	db.Exec(`create table vulns (id int not null, cve text, date int, descr text, severity real, access char(1), primary key(id))`)
 	db.Exec(`create table affected (vuln_id int not null, cpe text, foreign key(vuln_id) references vulns(id))`)
 	db.Exec(`create index cpe_vuln_idx on affected (cpe collate nocase)`)
 
@@ -100,7 +102,7 @@ func serializeEntries(file string, debug bool) error {
 
 	defer tx.Commit()
 
-	stm1, _ = tx.Prepare("insert into vulns values (?, ?, ?, ?, ?)")
+	stm1, _ = tx.Prepare("insert into vulns values (?, ?, ?, ?, ?, ?)")
 	stm2, _ = tx.Prepare("insert into affected values (?, ?)")
 
 	defer stm1.Close()
@@ -119,7 +121,10 @@ func serializeEntries(file string, debug bool) error {
 			continue
 		}
 
-		if _, err = stm1.Exec(id, entry.Name[4:], entry.Summary, entry.Classification.Severity, strings.ToLower(entry.Classification.AccessVector)[:1]); err != nil {
+		pubdate, _ := time.Parse(time.RFC3339, entry.Date)
+		unixtime := pubdate.Unix()
+
+		if _, err = stm1.Exec(id, entry.Name[4:], unixtime, entry.Summary, entry.Classification.Severity, strings.ToLower(entry.Classification.AccessVector)[:1]); err != nil {
 			fmt.Printf("%#v\n", err);
 			continue
 		}

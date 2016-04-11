@@ -77,7 +77,7 @@ Since this dependency is a _cgo_ package, you will need _gcc_ in your `%PATH%`. 
 
 ### Tables
 
-	vulns (id int, cve text, severity float, access char(1))
+	vulns (id int, cve text, date int, descr text, severity float, access char(1))
 	affected (vuln_id int, cpe text)
 
 The `access` field represents the access vector, and can be:
